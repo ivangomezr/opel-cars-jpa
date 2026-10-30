@@ -1,69 +1,130 @@
-# Opel Exam – Data Access
+# 🚗 Opel Cars — Car Catalogue and Test-Drive Booking (Java EE + JPA)
 
-> **Exam project** for the **Data Access** (*Acceso a Datos*) subject of the higher vocational training
-> programme in **Cross-Platform Application Development (DAM – Desarrollo de Aplicaciones Multiplataforma)**,
-> completed in **2023**.
+A web application for an Opel car catalogue. Users can browse models by type, check the trim levels of each model with their equipment, and book a test-drive appointment once logged in.
 
-A web application for an Opel car catalogue. It lets users browse models by type, view the trim levels
-of each one with their equipment, and book a test-drive appointment. The goal of the exam was to practise
-data persistence with **JPA** on a relational database, including one-to-many and many-to-many relationships.
+> 🎓 **Academic project.** Built as the exam project for the **Data Access** module (*Acceso a Datos*) of the **Higher National Diploma in Multiplatform Application Development** (*CFGS Desarrollo de Aplicaciones Multiplataforma, DAM*), 2nd year.
 
-**Author:** Iván Gómez – Azarquiel
+---
 
-## Features
+## 📸 Screenshots
 
-- Model catalogue with images, filterable by type from the navigation bar
-  (Saloon, SUV, Commercial, Electric, Hybrid).
-- Modal window showing each model's trim levels (Edition, Elegance, GS Line, Ultimate) and their equipment,
-  loaded via AJAX without reloading the page.
-- User registration and login in a single form: if the user does not exist, it is created.
-- Test-drive appointment booking, available only when logged in.
-
-## Technologies
-
-- Java EE 7: Servlets and JSP, running on Apache Tomcat
-- JPA 2.1 with EclipseLink
-- H2 database
-- Bootstrap 4 and jQuery
-- NetBeans (Ant web project)
-
-## Data model
-
-| Table | Description |
+| Catalogue | Filter by type |
 |---|---|
-| `TIPO` | Body or powertrain types |
-| `MODELO` | Car models with their image |
-| `TIPOMODELO` | Many-to-many relation between types and models |
-| `ACABADO` | Trim levels |
-| `MODELOACABADO` | Trim levels available for each model |
-| `ITEMACABADO` | Equipment items |
-| `MODELOACABADOITEM` | Many-to-many relation between a model's trim level and its equipment |
-| `USUARIO` | Registered users |
-| `CITA` | Test-drive appointments |
+| ![Catalogue](screenshots/catalogue.png) | ![Filter by type](screenshots/filter-by-type.png) |
 
-## How to run
+| Trim levels | Test-drive booking |
+|---|---|
+| ![Trim levels](screenshots/trim-levels.png) | ![Test-drive booking](screenshots/test-drive.png) |
 
-1. Open the project in NetBeans.
-2. Check the database URL in `src/conf/persistence.xml`
-   (default `jdbc:h2:C:\Users\Usuario\bd\opel`) and change it to a valid path on your machine.
-3. Run **Clean and Build** and deploy it on Tomcat. The entry page is `index.html`,
-   which redirects to `Controller?op=inicio`.
+---
 
-The database is recreated on every deployment (`drop-and-create`) and automatically populated from
-`util.JPAUtil` with types, models, trim levels, equipment, users and sample appointments.
-This means users and appointments created from the web are lost when the application is redeployed.
+## ✨ Features
 
-Test users: `admin/admin`, `ivan/1234`, `navarrata/navarrata`.
+- **Model catalogue** with images, filterable by type from the navigation bar: Saloon, SUV, Commercial, Electric and Hybrid.
+- **Trim levels popup**: each model shows its trim levels (Edition, Elegance, GS Line, Ultimate) and the equipment included in each one, loaded with **AJAX** without reloading the page.
+- **Login & register in one step**: if the nickname doesn't exist, a new user is created.
+- **Test-drive booking**, available only to logged-in users.
+- **Zero setup**: an embedded H2 database is created and filled automatically on startup.
+- Responsive layout with **Bootstrap 4**.
 
-## Project structure
+---
+
+## 🧰 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Language | Java |
+| Persistence | **JPA 2.1** (EclipseLink) with `@NamedQuery`, `@OneToMany`, `@ManyToOne` and `@ManyToMany` |
+| Database | **H2** embedded in-memory |
+| Web | Servlets (front controller) + JSP |
+| Frontend | HTML, CSS, Bootstrap 4, jQuery, AJAX |
+| Server | Apache Tomcat |
+| IDE / build | NetBeans (Ant) |
+
+---
+
+## 🏗️ Architecture
+
+MVC with a single **front controller** servlet (`Controller`) that routes on the `op` parameter:
+
+| `op` | Action |
+|---|---|
+| `inicio` | Loads all models and types and shows the home page |
+| `vatipo` | Filters the catalogue by type |
+| `acabados` | Returns the trim levels and equipment of a model (AJAX fragment) |
+| `login` / `logout` | Session management (login or register) |
+| `cita` | Books a test-drive appointment for the logged-in user |
+
+On startup, `JPAUtil` creates the `EntityManagerFactory`, JPA generates the tables from the entities (`drop-and-create`), and the database is filled with types, models, trim levels, equipment, users and sample appointments.
+
+### Domain model
+
+```mermaid
+classDiagram
+    direction LR
+    Tipo "*" -- "*" Modelo
+    Modelo "1" --> "*" Modeloacabado
+    Acabado "1" --> "*" Modeloacabado
+    Modeloacabado "*" -- "*" Itemacabado
+    Usuario "1" --> "*" Cita
+    Modelo "1" --> "*" Cita
+    class Tipo { id; nombre }
+    class Modelo { id; nombre; imagen }
+    class Acabado { id; nombre }
+    class Modeloacabado { id }
+    class Itemacabado { id; nombre }
+    class Usuario { id; nick; pass }
+    class Cita { id; fecha }
+```
+
+---
+
+## 📁 Project Structure
 
 ```
-src/java/controller/Controller.java   Main servlet (op=inicio | vatipo | acabados | login | logout | cita)
-src/java/entities/                    JPA entities
-src/java/util/JPAUtil.java            EntityManagerFactory and initial data
-src/conf/persistence.xml              JPA and H2 configuration
-web/home.jsp                          Main page
-web/acabados.jsp                      Trim levels fragment (loaded via AJAX)
-web/myjs.js                           Modal windows logic
-web/img/                              Model images
+opel-cars-jpa/
+├── src/
+│   ├── conf/persistence.xml       # JPA + H2 configuration
+│   └── java/
+│       ├── controller/Controller.java
+│       ├── entities/              # JPA entities
+│       └── util/JPAUtil.java      # EntityManagerFactory + initial data
+├── web/
+│   ├── home.jsp                   # Catalogue, navbar, login and booking modals
+│   ├── acabados.jsp               # Trim levels fragment (AJAX)
+│   ├── myjs.js · css/style.css
+│   └── img/                       # Model images
+├── screenshots/
+└── build.xml / nbproject/
 ```
+
+---
+
+## 🚀 Running Locally
+
+**No database setup needed.** The data is loaded automatically into an embedded H2 database every time the app starts.
+
+### Prerequisites
+- JDK 8
+- Apache Tomcat 8+
+- NetBeans (Java EE / Jakarta EE support)
+
+### Steps
+1. Clone the repository and open the project in NetBeans:
+   ```bash
+   git clone https://github.com/ivangomezr/opel-cars-jpa.git
+   ```
+2. Run **Clean and Build** and run it on Tomcat.
+3. Open `http://localhost:8080/opel-cars/`. The entry page redirects to `Controller?op=inicio`.
+
+**Test users:** `admin` / `admin`, `ivan` / `1234`. You can also log in with any new nickname and password; the account is created automatically.
+
+> ℹ️ The database is in memory, so new users and appointments are reset every time the server restarts.
+
+---
+
+## 🙋 Author
+
+**Iván Gómez** — [@ivangomezr](https://github.com/ivangomezr)
+
+Developed as coursework for the *Data Access* module, DAM.

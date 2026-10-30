@@ -12,9 +12,10 @@
     <exclude-unlisted-classes>false</exclude-unlisted-classes>
     <properties>
         <property name="javax.persistence.jdbc.driver" value="org.h2.Driver"/>
-        <property name="javax.persistence.jdbc.url" value="jdbc:h2:C:\Users\Usuario\bd\opel;AUTO_SERVER=TRUE"/>
+        <property name="javax.persistence.jdbc.url" value="jdbc:h2:mem:opel;DB_CLOSE_DELAY=-1"/>        
         <property name="javax.persistence.jdbc.user" value="sa"/>
         <property name="javax.persistence.jdbc.password" value=""/>
+        <property name="javax.persistence.schema-generation.database.action" value="drop-and-create"/>
     </properties>
   </persistence-unit>
 </persistence>

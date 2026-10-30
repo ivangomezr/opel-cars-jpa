@@ -95,26 +95,32 @@ public class Controller extends HttpServlet {
         } else if(op.equals("login")) {
             String nick = request.getParameter("nick");
             String password = request.getParameter("pass");
-            q = em.createQuery("Select u.id from Usuario u Where u.nick='"+nick+"' and u.pass='"+password+"'");
-            try {
-                Short id = (Short)q.getSingleResult();
-                usuario = em.find(Usuario.class, id);
-            } catch (NoResultException e) {
-                if (usuario==null) { // Login incorrecto procedemos a insertarlo
-                    usuario = new Usuario(Short.valueOf("1"));
-                    usuario.setNick(nick);
+            usuario = null;
+            if (nick == null || nick.trim().isEmpty() || password == null || password.isEmpty()) {
+                session.setAttribute("msg", "Rellena usuario y contraseña");
+            } else {
+                List<Usuario> encontrados = em.createQuery(
+                        "SELECT u FROM Usuario u WHERE u.nick = :nick", Usuario.class)
+                        .setParameter("nick", nick.trim())
+                        .getResultList();
+                if (encontrados.isEmpty()) { // No existe: lo registramos
+                    Short maxId = (Short) em.createQuery("SELECT MAX(u.id) FROM Usuario u").getSingleResult();
+                    usuario = new Usuario((short) (maxId == null ? 1 : maxId + 1));
+                    usuario.setNick(nick.trim());
                     usuario.setPass(password);
-                    
                     t = em.getTransaction();
                     t.begin();
                     em.persist(usuario);
                     t.commit();
+                    session.setAttribute("msg", "Usuario registrado. Bienvenido " + usuario.getNick() + "!");
+                } else if (encontrados.get(0).getPass().equals(password)) {
+                    usuario = encontrados.get(0);
+                    session.setAttribute("msg", "Bienvenido " + usuario.getNick() + "!");
+                } else {
+                    session.setAttribute("msg", "Contraseña incorrecta");
                 }
-            } catch (RollbackException e) {
-                
-            } 
-            session.setAttribute("usuario",usuario);
-            session.setAttribute("msg", "Bienvenido "+usuario.getNick()+"!");
+            }
+            session.setAttribute("usuario", usuario);
             request.getRequestDispatcher("home.jsp").forward(request, response);
             
         } else if(op.equals("logout")) {
