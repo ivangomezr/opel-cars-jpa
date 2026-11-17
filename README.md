@@ -13,7 +13,7 @@
 
 A web application for an Opel car catalogue. Users can browse models by type, check the trim levels of each model with their equipment, and book a test-drive appointment once logged in.
 
-> 🎓 **Academic project.** Built as the exam project for the **Data Access** module (*Acceso a Datos*) of the **Higher National Diploma in Multiplatform Application Development** (*CFGS Desarrollo de Aplicaciones Multiplataforma, DAM*), 2nd year.
+> 🎓 **Academic project.** Built as the exam project for the **Data Access** module (*Acceso a Datos*) of the **Higher Vocational Degree in Multiplatform Application Development** (*CFGS Desarrollo de Aplicaciones Multiplataforma, DAM*), 2nd year.
 
 ---
 
